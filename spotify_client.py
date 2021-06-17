@@ -56,6 +56,9 @@ class SpotifyClient(object):
         response_json = response.json()
         playlists = [playlist for playlist in response_json['items']]
 
+        #TODO: just for testing - request user ID
+        uid = playlists[0]["owner"]["id"]
+
         plid = None
         for i in range(len(playlists)):
             if playlists[i]['name'] == name:
@@ -63,40 +66,34 @@ class SpotifyClient(object):
                 break
 
         if plid is not None:
-            url_playlist = f'https://api.spotify.com/v1/playlists/{plid}/tracks'
-            response_get_pl = requests.get(
-                url_playlist,
+            url = f'https://api.spotify.com/v1/playlists/{plid}/followers'
+            response_unfollow = requests.delete(
+                url,
                 headers={
                     "Authorization": f"Bearer {self.api_key}"
                 },
                 params={
-                    "playlist_id": plid,
-                    "market": "DE",
-                    "fields": "items(track(uri))"
+                    "playlist_id": plid
                 }
             )
 
-            old_tracks = response_get_pl.json()
-            old_tracks['tracks'] = old_tracks.pop('items')
-            for i in range(len(old_tracks['tracks'])):
-                old_tracks['tracks'][i] = old_tracks['tracks'][i].pop('track')
-            tracks = old_tracks['tracks']
-            print(json.dumps(tracks))
-            response_delete_pl = requests.delete(
-                url_playlist,
+            url = f'https://api.spotify.com/v1/users/{uid}/playlists'
+            response_create = requests.post(
+                url,
                 headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json"
+                    "Authorization": f"Bearer {self.api_key}"
                 },
                 params={
-                    "playlist_id": plid
+                    "user_id": uid
                 },
                 json={
-                    "tracks": tracks
+                    "name": "Weekly Rotation"
                 }
             )
+            response_create_json = response_create.json()
+            plid = response_create_json["id"]
+        return plid
 
-            return plid
         # else:
         # TODO: create Playlist if not created yet
 
