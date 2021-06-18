@@ -1,22 +1,25 @@
-import os
 from spotify_client import SpotifyClient
 
-PLAYLIST_NAME = "Weekly Rotation"
+
+PLAYLIST_NAME = "WEEKLY ROTATION"
 
 
 def run():
-    #TODO: proper Auth
-    spotify_client = SpotifyClient(os.getenv('SPOTIFY_AUTH_TOKEN'))
-
-    playlist = spotify_client.prepare_playlist(PLAYLIST_NAME)
-
-    random_tracks = spotify_client.get_random_tracks()
-    track_ids = [track['uri'] for track in random_tracks]
-
-    was_added_to_playlist = spotify_client.add_tracks_to_playlist(track_ids, playlist)
-    if was_added_to_playlist:
-        for track in random_tracks:
-            print(f'Added {track["name"]} to playlist')
+    scope = [
+        "playlist-modify-public",
+        "playlist-modify-private",
+        "playlist-read-private",
+        "playlist-read-collaborative",
+        "user-library-modify",
+        "user-library-read"
+    ]
+    client = SpotifyClient(scope)
+    tracks = client.get_tracks()
+    track_uris = [track['uri'] for track in tracks]
+    success = client.create_random_playlist("WEEKLY ROTATION1", track_uris)
+    if success:
+        for track in tracks:
+            print(track["name"])
 
 
 if __name__ == '__main__':
