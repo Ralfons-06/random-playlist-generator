@@ -5,8 +5,12 @@ from spotipy import SpotifyOAuth
 
 class SpotifyClient:
 
-    def __init__(self, scope):
-        self.client = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+    def __init__(self, scope, client_id=None, client_secret=None, redirect_uri=None):
+        if client_id is not None & client_secret is not None & redirect_uri is not None:
+            self.client = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret,
+                                                                    redirect_uri=redirect_uri, scope=scope))
+        else:
+            self.client = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
 
     def get_tracks(self):
 
