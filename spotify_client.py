@@ -34,7 +34,7 @@ class SpotifyClient:
                 plid = playlists[i]['id']
                 break
         if plid is not None:
-            replace = self.client.playlist_replace_items(plid, tracks)
+            self.client.playlist_replace_items(plid, tracks)
         else:
             user = self.client.current_user()["id"]
             plid = self.client.user_playlist_create(user, name)["id"]
