@@ -1,19 +1,13 @@
 import random
 import spotipy
-from spotipy import SpotifyOAuth
 
 
 class SpotifyClient:
 
-    def __init__(self, scope, client_id=None, client_secret=None, redirect_uri=None):
-        if client_id is not None & client_secret is not None & redirect_uri is not None:
-            self.client = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret,
-                                                                    redirect_uri=redirect_uri, scope=scope))
-        else:
-            self.client = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+    def __init__(self, token):
+        self.client = spotipy.Spotify(auth=token)
 
     def get_tracks(self):
-
         total = self.client.current_user_saved_tracks(limit=1)["total"]
         random_tracks = []
         i = 0
