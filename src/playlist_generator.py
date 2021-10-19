@@ -1,6 +1,5 @@
 from spotify_client import SpotifyClient
 import appdaemon.plugins.hass.hassapi as hass
-import datetime
 import time
 
 import spotify_token as st
@@ -21,12 +20,12 @@ class playlist_generator(hass.Hass):
         self.key = self.args[CONF_SP_KEY]
 
         runtime = self.parse_time("00:00:00")
-        self.run_daily(self.run, runtime, constrain_days="sun")
+        self.run_daily(self.run, runtime, constrain_days="sun,tue,thu,sat")
 
     def run(self, kwargs):
         self.log("START: PLAYLIST GENERATION")
         client = SpotifyClient(token=self.get_spotify_token())
-        tracks = client.get_tracks()
+        tracks = client.get_tracks(65)
         track_uris = [track['uri'] for track in tracks]
         success = client.create_random_playlist(PLAYLIST_NAME, track_uris)
         if success:
@@ -71,4 +70,4 @@ class SpotifyToken:
             expires = self._token_expires - int(time.time())
             return self._access_token, expires
         except:  # noqa: E722
-            print("blöd gelaufen")
+            print("bloed gelaufen")
