@@ -10,7 +10,7 @@ class SpotifyClient:
     def get_tracks(self, number_of_tracks):
         total = self.client.current_user_saved_tracks(limit=1)["total"]
         random_tracks = []
-        for _ in range(number_of_tracks):
+        for _ in range(number_of_tracks + 1):
             offset = random.randrange(total - 1)
             response = self.client.current_user_saved_tracks(1, offset)
             track = [temp_track for temp_track in response['items']]
