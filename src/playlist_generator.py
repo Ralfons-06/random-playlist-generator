@@ -1,8 +1,10 @@
 from spotify_client import SpotifyClient
 import appdaemon.plugins.hass.hassapi as hass
+import datetime
 import time
 
 import spotify_token as st
+
 
 PLAYLIST_NAME = "WEEKLY ROTATION"
 
@@ -11,21 +13,24 @@ LOG_LEVEL = "Info"
 CONF_SP_DC = "sp_dc"
 CONF_SP_KEY = "sp_key"
 
+TRACK_NO = "track_no"
+
 
 class playlist_generator(hass.Hass):
 
     def initialize(self):
+        self.track_no = self.args[TRACK_NO]
         self.dc = self.args[CONF_SP_DC]
         self.key = self.args[CONF_SP_KEY]
 
         runtime = self.parse_time("00:00:00")
         self.run_daily(self.run, runtime, constrain_days="sun,tue,thu,sat")
-        # self.listen_state(self.run, "input_boolean.test_switch", new="on")
+        #self.handle = self.listen_state(self.run, entity="input_boolean.test_switch")
 
     def run(self, *args):
         self.log("START: PLAYLIST GENERATION")
         client = SpotifyClient(token=self.get_spotify_token())
-        tracks = client.get_tracks(65)
+        tracks = client.get_tracks(self.track_no)
         track_uris = [track['uri'] for track in tracks]
         success = client.create_random_playlist(PLAYLIST_NAME, track_uris)
         if success:
