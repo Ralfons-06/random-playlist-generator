@@ -4,7 +4,6 @@ import time
 
 import spotify_token as st
 
-
 PLAYLIST_NAME = "WEEKLY ROTATION"
 
 LOG_LEVEL = "Info"
@@ -21,8 +20,9 @@ class playlist_generator(hass.Hass):
 
         runtime = self.parse_time("00:00:00")
         self.run_daily(self.run, runtime, constrain_days="sun,tue,thu,sat")
+        self.listen_state(self.run, "input_boolean.test_switch", new="on")
 
-    def run(self, kwargs):
+    def run(self, *args):
         self.log("START: PLAYLIST GENERATION")
         client = SpotifyClient(token=self.get_spotify_token())
         tracks = client.get_tracks(65)
