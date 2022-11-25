@@ -4,14 +4,11 @@ import logging
 import aiohttp
 import asyncio
 import json
-import os
 import config
 
 
 PLAYLIST_NAME = "WEEKLY ROTATION"
-
 LOG_LEVEL = "Info"
-
 TRACK_NO = "track_no"
 
 
