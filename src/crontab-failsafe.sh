@@ -2,12 +2,14 @@
 
 LOG_DIR=~/workspace/random-playlist-generator/src/.log
 SCRIPT=~/workspace/random-playlist-generator/src/playlist_generator.py
-SLEEP=345600
+FS_TIMESTAMP="FS_TIMESTAMP:"
+SLEEP=259200
 
 
-ENTRY=$(grep FS_TIMESTAMP src/.log | tail -1)
-IFS=':' read -r -a entry <<< "$ENTRY"
-LEXEC=${entry[3]}
+ENTRY=$(grep $FS_TIMESTAMP src/.log | tail -1)
+LEXEC=${ENTRY#*$FS_TIMESTAMP}
+LEXEC=$(date -d "$LEXEC" +%s)
+
 
 TSTAMP=$(date +%s)
 DELTA=$((TSTAMP-LEXEC))
@@ -20,11 +22,14 @@ fi
 python3 $SCRIPT
 
 # make sure that the new entry is matches the last missed execution (so the switch interval stays static)
-while [ $LEXEC -lt $TSTAMP ]
+MISSED_EXECS=-1
+while [ $TSTAMP -gt $LEXEC ]
 do 
-    LEXEC=$((LEXEC+SLEEP))
+    ((MISSED_EXECS++))
+    TSTAMP=$((TSTAMP-SLEEP))
+    #LEXEC=$((LEXEC+SLEEP))
 done
 
-echo "INFO:cron:FS_TIMESTAMP:$LEXEC" >> .log
+LEXEC=$((LEXEC+SLEEP*MISSED_EXECS))
 
-
+echo "INFO:cron:FS_TIMESTAMP:$(date -d @$LEXEC '+%Y-%m-%d %H:%M:%S')" >> src/.log
