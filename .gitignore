@@ -5,3 +5,4 @@ venv/
 .vscode/launch.json
 src/.cache
 .log
+src/config.py
