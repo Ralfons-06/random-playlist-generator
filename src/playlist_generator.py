@@ -4,6 +4,7 @@ import logging
 import aiohttp
 import asyncio
 import json
+import os
 
 
 
@@ -11,25 +12,15 @@ PLAYLIST_NAME = "WEEKLY ROTATION"
 
 LOG_LEVEL = "Info"
 
-CONF_SP_DC = "sp_dc"
-CONF_SP_KEY = "sp_key"
-
 TRACK_NO = "track_no"
 
 
 class PlaylistGenerator:
 
     def __init__(self):
-        self.dc = "AQCbHmIRP_d-VVSM8mwacHc0OB190oLeC5lxvt9RExWg7Dk4BIWPIkg1XHyD9pa0--o3QMw23DHiRaCAdpQ1JQhCguZQPiyPXJtgRXgHZq-SQibx33CnuFHoCUtQNFqDJEfAbWbK-Y9zvJaHhOm1Cx194KcLFTU"
-        self.key = "45b4a296-0f58-47dc-a732-184c38ab51a8"
-        #self.track_no = self.args[TRACK_NO]
-        #self.dc = self.args[CONF_SP_DC]
-        #self.key = self.args[CONF_SP_KEY]
+        self.dc = os.getenv("SP_DC")
+        self.key = os.getenv("SP_KEY")
         self.log = Log
-
-        #runtime = self.parse_time("00:00:00")
-        #self.run_daily(self.run, runtime, constrain_days="sun,tue,thu,sat")
-        #self.handle = self.listen_state(self.run, entity="input_boolean.test_switch")
 
     def run(self, *args):
         self.log("START: PLAYLIST GENERATION")
@@ -96,8 +87,6 @@ class TokenHelper:
             headers = { 'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36" }
             async with session.get('https://open.spotify.com/get_access_token?reason=transport&productType=web_player', allow_redirects=False, headers=headers) as response:
                 if(response.status != 200):
-                    #_LOGGER.info("Did not get 200 response status")
-                    #_LOGGER.info(response)
                     return None, None
                 data = await response.text()
                 config = json.loads(data)
@@ -116,9 +105,6 @@ class Log:
     def __init__(self, msg):
         logging.basicConfig(filename='.log', encoding='utf-8', level=logging.INFO)
         logging.info(msg)
-
-
-
 
 
 if __name__ == '__main__':
