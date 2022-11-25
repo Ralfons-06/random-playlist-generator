@@ -2,3 +2,6 @@
 venv/
 /.idea/
 /src/test.py
+.vscode/launch.json
+src/.cache
+.log
