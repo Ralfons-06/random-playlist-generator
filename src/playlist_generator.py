@@ -5,7 +5,7 @@ import aiohttp
 import asyncio
 import json
 import os
-
+import config
 
 
 PLAYLIST_NAME = "WEEKLY ROTATION"
@@ -18,8 +18,8 @@ TRACK_NO = "track_no"
 class PlaylistGenerator:
 
     def __init__(self):
-        self.dc = os.getenv("SP_DC")
-        self.key = os.getenv("SP_KEY")
+        self.dc = config.sp_dc
+        self.key = config.sp_key
         self.log = Log
 
     def run(self, *args):
