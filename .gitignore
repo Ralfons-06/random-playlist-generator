@@ -1,8 +1,7 @@
 /.cache
 venv/
 /.idea/
-/src/test.py
+/app/src/test.py
 .vscode/launch.json
-src/.cache
-.log
-src/my_config.py
+app/src/python/.cache
+app/src/python/my_config.py
