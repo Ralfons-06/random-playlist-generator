@@ -1,2 +1,3 @@
-sp_key = 'EXAMPLE_KEY'
-sp_dc = 'EXAMPLE_DC'
+client_id="CLIENT_ID"
+client_secret="CLIENT_SECRET"
+redirect_uri="REDIRECT_URI"

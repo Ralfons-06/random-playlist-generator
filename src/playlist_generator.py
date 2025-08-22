@@ -1,109 +1,85 @@
-from spotify_client import SpotifyClient
-import time
-import logging
-import aiohttp
-import asyncio
-import json
-import config
+import random
 
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import logging
+import my_config
+from typing import List
 
 PLAYLIST_NAME = "WEEKLY ROTATION"
-LOG_LEVEL = "Info"
-TRACK_NO = "track_no"
+TRACK_NO = 60
+SCOPES = "user-library-read playlist-modify-private playlist-modify-public"
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class PlaylistGenerator:
-
     def __init__(self):
-        self.dc = config.sp_dc
-        self.key = config.sp_key
-        self.log = Log
+        self.client = self._get_spotify_client()
 
-    def run(self, *args):
-        self.log("START: PLAYLIST GENERATION")
-        track_no = 60
+    def _get_spotify_client(self) -> spotipy.Spotify:
+        """Create Spotify client using refresh token flow"""
+        sp_oauth = SpotifyOAuth(
+            client_id=my_config.client_id,
+            client_secret=my_config.client_secret,
+            redirect_uri=my_config.redirect_uri,
+            scope=SCOPES,
+            cache_path=".spotify_token_cache"  # stores refresh token locally
+        )
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            # First-time: open browser to log in + approve scopes
+            auth_url = sp_oauth.get_authorize_url()
+            print("Open this URL in your browser to authorize the app:")
+            print(auth_url)
+            code = input("Enter the URL you were redirected to: ")
+            code = sp_oauth.parse_response_code(code)
+            token_info = sp_oauth.get_access_token(code)
+            logger.info("Access token obtained and cached.")
 
-        client = SpotifyClient(token=self.get_spotify_token())
-        tracks = client.get_tracks(track_no)
-        track_uris = [track['uri'] for track in tracks]
-        success = client.create_random_playlist(PLAYLIST_NAME, track_uris)
+        return spotipy.Spotify(auth=token_info["access_token"])
+
+    def run(self):
+        logger.info("START: PLAYLIST GENERATION")
+        tracks = self.get_tracks(TRACK_NO)
+        track_uris = [track["uri"] for track in tracks]
+        success = self.create_random_playlist(PLAYLIST_NAME, track_uris)
         if success:
-            self.log("Spotify Playlist successfully refreshed")
+            logger.info("Spotify Playlist successfully refreshed")
 
-    def get_token_instance(self):
-        self.log("Setting up Token")
-        return SpotifyToken(self.dc, self.key)
+    def get_tracks(self, number_of_tracks: int) -> List[dict]:
+        """Get tracks from your library (or other search)"""
+        total = self.client.current_user_saved_tracks(limit=1)["total"]
+        random_tracks = []
+        for _ in range(number_of_tracks + 1):
+            offset = random.randrange(total - 1)
+            response = self.client.current_user_saved_tracks(1, offset)
+            track = [temp_track for temp_track in response['items']]
+            if track not in random_tracks:
+                random_tracks.append(track)
+        return [temp_track[0]['track'] for temp_track in random_tracks[:]]
 
-    def get_spotify_token(self):
-        return self.get_token_instance().access_token
+    def create_random_playlist(self, name: str, track_uris: List[str]) -> bool:
+        """Create or replace a playlist with tracks"""
+        user_id = self.client.me()["id"]
+        # check if playlist exists
+        playlists = self.client.user_playlists(user_id)
+        playlist_id = None
+        for p in playlists["items"]:
+            if p["name"] == name:
+                playlist_id = p["id"]
+                break
 
+        if not playlist_id:
+            playlist = self.client.user_playlist_create(user=user_id, name=name, public=False)
+            playlist_id = playlist["id"]
 
-# source: https://github.com/fondberg/spotcast/blob/master/custom_components/spotcast/spotcast_controller.py
-class SpotifyToken:
-    """Represents a spotify token for an account."""
-
-    sp_dc = None
-    sp_key = None
-    _access_token = None
-    _token_expires = 0
-
-    def __init__(self, sp_dc, sp_key):
-        self.sp_dc = sp_dc
-        self.sp_key = sp_key
-
-    def ensure_token_valid(self):
-        if float(self._token_expires) > time.time():
-            return True
-        self.get_spotify_token()
-
-    @property
-    def access_token(self):
-        self.ensure_token_valid()
-        return self._access_token
-
-    def get_spotify_token(self):
-        try:
-            helper = TokenHelper(self.sp_dc, self.sp_key)
-            self._access_token, self._token_expires = asyncio.run(helper.start_session())
-            expires = self._token_expires - int(time.time())
-            return self._access_token, expires
-        except:  # noqa: E722
-            print("bloed gelaufen")
-
-class TokenHelper:
-    sp_dc = None
-    sp_key = None
-    def __init__(self, sp_dc: str, sp_key: str) -> None:
-        self.sp_dc = sp_dc
-        self.sp_key = sp_key
-
-    async def start_session(self):
-        """ Starts session to get access token. """
-        cookies = { 'sp_dc': self.sp_dc, 'sp_key': self.sp_key }
-        async with aiohttp.ClientSession(cookies=cookies) as session:
-            headers = { 'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36" }
-            async with session.get('https://open.spotify.com/get_access_token?reason=transport&productType=web_player', allow_redirects=False, headers=headers) as response:
-                if(response.status != 200):
-                    return None, None
-                data = await response.text()
-                config = json.loads(data)
-                access_token = config['accessToken']
-                expires_timestamp = config['accessTokenExpirationTimestampMs']
-                expiration_date = int(expires_timestamp) // 1000
-                return access_token, expiration_date
+        # Replace playlist items
+        self.client.playlist_replace_items(playlist_id, track_uris)
+        return True
 
 
-class Log:
-
-    def __new__(cls, *args, **kwargs):
-            return super().__new__(cls)
-            
-    
-    def __init__(self, msg):
-        logging.basicConfig(filename='.log', encoding='utf-8', level=logging.INFO)
-        logging.info(msg)
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     gen = PlaylistGenerator()
     gen.run()
