@@ -18,6 +18,45 @@ class PlaylistGenerator:
     def __init__(self):
         self.client = self._get_spotify_client()
 
+    def run(self):
+        logger.info("START: PLAYLIST GENERATION")
+        tracks = self.get_tracks(TRACK_NO)
+        track_uris = [track["uri"] for track in tracks]
+        success = self.create_random_playlist(PLAYLIST_NAME, track_uris)
+        if success:
+            logger.info("Spotify Playlist successfully refreshed")
+
+    def get_tracks(self, number_of_tracks: int) -> List[dict]:
+        """Get tracks from your library (or other search)"""
+        total = self.client.current_user_saved_tracks(limit=1)["total"]
+        random_tracks = []
+        for _ in range(number_of_tracks + 1):
+            offset = random.randrange(total - 1)
+            response = self.client.current_user_saved_tracks(1, offset)
+            track = [temp_track for temp_track in response['items']]
+            if track not in random_tracks:
+                random_tracks.append(track)
+        return [temp_track[0]['track'] for temp_track in random_tracks]
+
+    def create_random_playlist(self, name: str, track_uris: List[str]) -> bool:
+        """Create or replace a playlist with tracks"""
+        user_id = self.client.me()["id"]
+        # check if playlist exists
+        playlists = self.client.user_playlists(user_id)
+        playlist_id = None
+        for p in playlists["items"]:
+            if p["name"] == name:
+                playlist_id = p["id"]
+                break
+
+        if not playlist_id:
+            playlist = self.client.user_playlist_create(user=user_id, name=name, public=False)
+            playlist_id = playlist["id"]
+
+        # Replace playlist items
+        self.client.playlist_replace_items(playlist_id, track_uris)
+        return True
+
     def _get_spotify_client(self) -> spotipy.Spotify:
         """Create Spotify client using refresh token flow"""
         sp_oauth = SpotifyOAuth(
@@ -40,44 +79,7 @@ class PlaylistGenerator:
 
         return spotipy.Spotify(auth=token_info["access_token"])
 
-    def run(self):
-        logger.info("START: PLAYLIST GENERATION")
-        tracks = self.get_tracks(TRACK_NO)
-        track_uris = [track["uri"] for track in tracks]
-        success = self.create_random_playlist(PLAYLIST_NAME, track_uris)
-        if success:
-            logger.info("Spotify Playlist successfully refreshed")
 
-    def get_tracks(self, number_of_tracks: int) -> List[dict]:
-        """Get tracks from your library (or other search)"""
-        total = self.client.current_user_saved_tracks(limit=1)["total"]
-        random_tracks = []
-        for _ in range(number_of_tracks + 1):
-            offset = random.randrange(total - 1)
-            response = self.client.current_user_saved_tracks(1, offset)
-            track = [temp_track for temp_track in response['items']]
-            if track not in random_tracks:
-                random_tracks.append(track)
-        return [temp_track[0]['track'] for temp_track in random_tracks[:]]
-
-    def create_random_playlist(self, name: str, track_uris: List[str]) -> bool:
-        """Create or replace a playlist with tracks"""
-        user_id = self.client.me()["id"]
-        # check if playlist exists
-        playlists = self.client.user_playlists(user_id)
-        playlist_id = None
-        for p in playlists["items"]:
-            if p["name"] == name:
-                playlist_id = p["id"]
-                break
-
-        if not playlist_id:
-            playlist = self.client.user_playlist_create(user=user_id, name=name, public=False)
-            playlist_id = playlist["id"]
-
-        # Replace playlist items
-        self.client.playlist_replace_items(playlist_id, track_uris)
-        return True
 
 
 if __name__ == "__main__":

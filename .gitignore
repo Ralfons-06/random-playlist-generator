@@ -7,3 +7,6 @@ src/.cache
 .log
 src/my_config.py
 .spotify_token_cache
+*__pycache__
+.venv
+.vscode
