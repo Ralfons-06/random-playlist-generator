@@ -1,0 +1,1 @@
+0 0 */2 * * cd /app/src && /usr/local/bin/python /app/src/playlist_generator.py

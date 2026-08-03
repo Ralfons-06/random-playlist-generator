@@ -20,6 +20,12 @@ add the following line to the file:
 
 `0 0 2 * * /usr/bin/python3 /path/to/playlist_generator.py` 
 
+### Run with Docker
+
+1. First run the script locally to obtain the spotify token cache
+2. Build the container
+3. Run the container with `docker run -d --name playlist-cron -v $(pwd)/.spotify_token_cache:/app/.spotify_token_cache rafaeldobler/spotify-playlist-generator:latest`  
+
 
 
 
