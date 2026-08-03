@@ -20,11 +20,10 @@ add the following line to the file:
 
 `0 0 2 * * /usr/bin/python3 /path/to/playlist_generator.py` 
 
-### Run with Docker
+### Run with Docker Compose
 
-1. First run the script locally to obtain the spotify token cache
-2. Build the container
-3. Run the container with `docker run -d --name playlist-cron -v $(pwd)/.spotify_token_cache:/app/.spotify_token_cache rafaeldobler/spotify-playlist-generator:latest`  
+1. First run the script locally to obtain the spotify token cache or run `docker compose run -it --rm generator python src/playlist_generator.py`
+2. Run Compose `docker compose up -d`
 
 
 

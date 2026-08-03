@@ -7,25 +7,27 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #121212; color: #e0e0e0; margin: 2rem; max-width: 1000px; margin-left: auto; margin-right: auto; }
         h1, h2 { color: #1db954; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; background: #181818; }
-        th, td { border-bottom: 1px solid #282828; padding: 12px; text-align: left; }
+        th, td { border-bottom: 1px solid #282828; padding: 12px; text-align: left; vertical-align: middle; }
         th { background: #222; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; color: #b3b3b3; }
         .stat-box { background: #181818; padding: 20px; border-radius: 8px; display: inline-block; margin-bottom: 2rem; border-left: 4px solid #1db954; }
         .stat-value { font-size: 2rem; font-weight: bold; }
+        .track-img { width: 40px; height: 40px; border-radius: 4px; display: block; }
     </style>
 </head>
 <body>
     <h1>Playlist History</h1>
     
     <div class="stat-box">
-        <div>Aktuelle Songpool Größe</div>
+        <div>Aktuelle Songpool Größe (Unique Tracks)</div>
         <div class="stat-value">{{ pool_size }}</div>
     </div>
     
     <h2>Top 50 Meistgewählte Tracks</h2>
     <table>
-        <tr><th>Track</th><th>Artist</th><th>Auswahlen</th></tr>
+        <tr><th>Cover</th><th>Track</th><th>Artist</th><th>Auswahlen</th></tr>
         {% for t in top_tracks %}
         <tr>
+            <td>{% if t.image_url %}<img src="{{ t.image_url }}" class="track-img">{% endif %}</td>
             <td>{{ t.name }}</td>
             <td>{{ t.artist }}</td>
             <td>{{ t.selection_count }}</td>
@@ -35,12 +37,12 @@
     
     <h2>Letzte Ausführungen</h2>
     <table>
-        <tr><th>Run ID</th><th>Zeitpunkt</th><th>Pool Größe</th></tr>
+        <tr><th>Run ID</th><th>Zeitpunkt</th><th>Status</th></tr>
         {% for e in executions %}
         <tr>
             <td>{{ e.id }}</td>
             <td>{{ e.timestamp }}</td>
-            <td>{{ e.pool_size }}</td>
+            <td>{{ e.status }}</td>
         </tr>
         {% endfor %}
     </table>
